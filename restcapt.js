@@ -2,7 +2,8 @@
 
 /*\
  *  restcapt.js
- *  2014-02-12 / Meetin.gs
+ *  A web frontend to cutycapt
+ *  2014-02-13 / Meetin.gs
 \*/
 
 var _    = require('underscore')
@@ -13,6 +14,16 @@ var rest = require('restler')
 var tmp  = require('tmp')
 var util = require('util')
 var pkg  = require('./package.json')
+
+var AUTH_TOKEN = 'somewhatsecret9211'
+
+var EMSG = {
+    auth: 'Authentication required\n',
+    arg:  'Parameters url and upload required\n',
+    file: 'Could not create a resource\n',
+    cuty: 'Failed to capture target\n',
+    miss: 'Cannot find resource\n'
+}
 
 /* Normalize given input.
  *
@@ -32,27 +43,47 @@ function toNaturalNumber(i, def) {
 
 /* Parse and validate client request.
  *
- * @return a validated set of parameters or false.
+ * @return a validated set of parameters.
  */
 function parseRequest(req) {
-    var parsed = {}
+    var parsed = { fail: false }
 
-    var parsed['url']    = req.param('url')
-    var parsed['upload'] = req.param('upload')
-    var parsed['delay']  = req.param('delay')
-    var parsed['width']  = req.param('min-width')
-    var parsed['height'] = req.param('min-height')
-    var parsed['js']     = req.param('javascript')
+    parsed['url']    = req.param('url')
+    parsed['upload'] = req.param('upload')
+    parsed['auth']   = req.param('auth')
+    parsed['delay']  = req.param('delay')
+    parsed['width']  = req.param('width')
+    parsed['height'] = req.param('height')
+    parsed['js']     = req.param('javascript')
 
-    if (_.isUndefined(parsed.url) || _.isUndefined(upload)) {
-        return false
+    if (_.isUndefined(parsed.auth)) {
+        parsed.auth = 'fail'
+    }
+
+    if (parsed.auth !== AUTH_TOKEN) {
+        parsed.fail = true
+        parsed.code = 401
+        parsed.err = EMSG.auth
+        return parsed
+    }
+
+    if (_.isUndefined(parsed.url) || _.isUndefined(parsed.upload)) {
+        parsed.fail = true
+        parsed.code = 400
+        parsed.err = EMSG.arg
+        return parsed
     }
 
     parsed.delay  = toNaturalNumber(parsed.delay,  1000)
     parsed.width  = toNaturalNumber(parsed.width,  800)
     parsed.height = toNaturalNumber(parsed.height, 600)
 
-    parsed.js = (parsed.js.toLowerCase() !== 'off')? 'on': 'off'
+    if (!_.isUndefined(parsed.js) && parsed.js.toLowerCase() === 'off') {
+        parsed.js = 'off'
+    }
+    else {
+        parsed.js = 'on'
+    }
 
     return parsed
 }
@@ -60,121 +91,97 @@ function parseRequest(req) {
 /* Receive client request and create a shell command.
  */
 function restcapt(req, result) {
-    var jtn = parseRequest(req)
+    var parsed = parseRequest(req)
 
-    debug("JTN parametreja", jtn)
+    // debug("REQ parametreja", parsed)
 
-    if (!jtn) {
-        result.status(400).send('Required parameters: url & upload\n')
+    if (parsed.fail) {
+        util.log('ERR  %s from client', parsed.code)
+        result.status(parsed.code).send(parsed.err)
         return
     }
 
-    tmp.tmpName(function(err, filename) {
+    util.log(util.format('CAPT %s', parsed.url))
+
+    tmp.tmpName({postfix: '.png'}, function(err, filename) {
         if (err) {
-            result.status(500).send('Failed to create a file\n')
+            util.log('ERR  unable to create a file')
+            result.status(500).send(EMSG.file)
             return
         }
 
         var cmd = util.format(
-            'xvfb-run -w1 cutycapt --url=%s --delay=%s ' +
-            '--min-width=%s --min-height=%s --javascript=%s --out=%s',
-            jtn.url,
-            jtn.delay,
-            jtn.width,
-            jtn.height,
-            jtn.js,
-            filename
+            'xvfb-run -s "-screen 0 %sx%sx24" -w 1 cutycapt --url="%s"' +
+            ' --delay=%s --max-wait=10000 --min-width=%s --min-height=%s' +
+            ' --javascript=%s --out=%s',
+
+            parsed.width, parsed.height,
+            parsed.url, parsed.delay,
+            parsed.width, parsed.height,
+            parsed.js, filename
         )
 
-        capture(req, result, cmd, jtn.upload, filename)
+        capture(req, result, cmd, parsed.upload, filename)
     })
 }
 
 /* Run cutycapt.
  */
-function capture(req, result, cmd, upload, filename) {
-    debug("capture() with CMD", cmd)
+function capture(req, result, cmd, url, filename) {
+    // debug("capture() with CMD", cmd)
 
-    // time xvfb-run -w1 cutycapt --delay=1000 --url="https://www.meetin.gs" --out=meetings.png
-    // var filename = "capt_" + Date.now() + ".png"
-    // var cmd = 'xvfb-run -w1 cutycapt --delay=1000 --url="' + url + '" --out=' + filename
-
-    util.log('Before cmd: ' + Date.now())
+    var start = Date.now()
 
     var cuty = exec(cmd, function(err, stdout, stderr) {
         if (err) {
-            util.log('Xvfb/cutycapt stack trace:\nerr.stack')
-            result.status(500).send('Failed to capture page\n')
+            debug("ERR", err)
+            util.log('ERR  Xvfb/cutycapt returned with error')
+            result.status(500).send(EMSG.cuty)
+            return
         }
 
-        util.log('At callback: ' + Date.now())
+        var stop = Date.now()
 
-        upload(req, result, upload, filename)
-
-        // result.status(200).send(filename)
-    })
-
-    cuty.on('exit', function(code) {
-        util.log('At sig exit: ' + Date.now())
-        // util.log('Child process returned with ' + code)
+        upload(req, result, url, filename, (stop-start))
     })
 }
 
 /* Upload captured image data.
  */
-function upload(req, result, upload, filename) {
-    fs.stat(filename, function(err, file) {
-        rest.post(upload, {
+function upload(req, result, url, filename, time) {
+    fs.stat(filename, function(err, stat) {
+        if (err) {
+            debug("ERR", err)
+            util.log('ERR  stat failed, file missing')
+            result.status(500).send(EMSG.miss)
+            return
+        }
+
+        rest.post(url, {
             multipart: true,
             data: {
-                filename: rest.file(filename, null, file.size, null, "image/png")
+                file: rest.file(filename, null, stat.size, null, "image/png")
             }
         }).on('complete', function(data) {
-            debug("UPLOAD data", data)
-
             fs.unlink(filename, function(err) {
-                if (err) util.log('Failed to remove tempfile: ' + filename)
-                util.log('Cleanup: ' + filename)
+                if (err) util.log('ERR  unable to remove: ' + filename)
             })
+
+            util.log(util.format('DONE in %s', time))
+            result.status(200).send(data)
         })
     })
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-// rest.post('https://twaud.io/api/v1/upload.json', {
-//   multipart: true,
-//   username: 'danwrong',
-//   password: 'wouldntyouliketoknow',
-//   data: {
-//     'sound[message]': 'hello from restler!',
-//     'sound[file]': rest.file('doug-e-fresh_the-show.mp3', null, 321567, null, 'audio/mpeg')
-//   }
-// }).on('complete', function(data) {
-//   console.log(data.audio_url);
-// });
-
-// fs.stat("image.jpg", function(err, stats) {
-//     restler.post("http://posttestserver.com/post.php", {
-//         multipart: true,
-//         data: {
-//             "folder_id": "0",
-//             "filename": restler.file("image.jpg", null, stats.size, null, "image/jpg")
-//         }
-//     }).on("complete", function(data) {
-//         console.log(data);
-//     });
-// });
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+var port = toNaturalNumber(process.env.PORT, 8000)
 
 app.get('/', restcapt)
 
-app.listen(process.env.PORT)
+app.listen(port)
 
 util.log(pkg.name + ' ' + pkg.version)
 util.log(pkg.description + ' by Meetin.gs Ltd')
-util.log('Listening on port ' + process.env.PORT)
+util.log('Listening on port ' + port)
 
 function debug(msg, obj) {
     console.log("DEBUG :: " + msg + " ::")

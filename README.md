@@ -1,15 +1,32 @@
 
 # restcapt
 
+[cuty]: http://cutycapt.sf.net
+[xvfb]: http://manpages.ubuntu.com/manpages/precise/man1/Xvfb.1.html
+
 ## usage
 
 <table>
-<tr>url<td></td><td>Required. Address of the page to be captured.</td></tr>
-<tr>upload<td></td><td>Required. Address to receive captured image.</td></tr>
-<tr>delay<td></td><td>Parameter --delay passed to cutycapt (default 1000).</td></tr>
-<tr>min-width<td></td><td>Parameter --min-width passed to cutycapt (default 800).</td></tr>
-<tr>min-height<td></td><td>Parameter --min-height passed to cutycapt (default 600).</td></tr>
-<tr>javascript<td></td><td>Parameter --javascript passed to cutycapt (default "on").</td></tr>
+<tr><td>auth</td>
+<td>Required. Authentication token.</td></tr>
+
+<tr><td>url</td>
+<td>Required. Address of the page to be captured.</td></tr>
+
+<tr><td>upload</td>
+<td>Required. Address to receive the captured image.</td></tr>
+
+<tr><td>delay</td>
+<td>Passed to cutycapt (as --delay). Default is 1000.</td></tr>
+
+<tr><td>width</td>
+<td>Passed to Xvfb (as -screen) and to cutycapt (as --min-width). Default is 800.</td></tr>
+
+<tr><td>height</td>
+<td>Passed to Xvfb (as -screen) and to cutycapt (as --min-height). Default is 600.</td></tr>
+
+<tr><td>javascript</td>
+<td>Passed to cutycapt (as --javascript). Default is "on".</td></tr>
 </table>
 
-See the (cutycapt)[http://cutycapt.sf.net] homepage for more information about *cutycapt*.
+See the [cutycapt][cuty] homepage and [Xvfb][xvfb] manual for more information.

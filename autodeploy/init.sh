@@ -6,3 +6,5 @@ npm install
 npm link
 
 install -m 0644 $DEPLOYDIR/$INTENT.conf /etc/init
+
+service $INTENT start
