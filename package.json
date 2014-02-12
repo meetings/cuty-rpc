@@ -1,0 +1,25 @@
+{
+  "name": "restcapt",
+  "version": "0.0.1",
+  "description": "Web frontend to cutycapt",
+  "dependencies": {
+    "express": "~ 3.4",
+    "restler": "~ 3.1",
+    "tmp": "~ 0.0",
+    "underscore": "~ 1.5"
+  },
+  "bin": "./restcapt.js",
+  "scripts": {
+    "test": "echo No tests specified"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/meetings/restcapt.git"
+  },
+  "author": "Tuomas Starck <tuomas@meetin.gs>",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/meetings/restcapt/issues"
+  }
+}
