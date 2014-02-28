@@ -9,7 +9,7 @@ set -u
 git_upgrade
 
 if [ $? == 0 ] && [ "$FORCE" != "yes" ]; then
-    say Version has not changed, exiting
+    echo Version has not changed, exiting
     exit 0
 fi
 

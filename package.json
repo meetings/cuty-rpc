@@ -1,6 +1,6 @@
 {
-  "name": "restcapt",
-  "version": "0.0.1",
+  "name": "cuty-rpc",
+  "version": "0.0.2",
   "description": "Web frontend to cutycapt",
   "dependencies": {
     "express": "~ 3.4",
@@ -8,18 +8,18 @@
     "tmp": "~ 0.0",
     "underscore": "~ 1.5"
   },
-  "bin": "./restcapt.js",
+  "bin": "./cuty-rpc.js",
   "scripts": {
     "test": "echo No tests specified"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/meetings/restcapt.git"
+    "url": "git://github.com/meetings/cuty-rpc.git"
   },
   "author": "Tuomas Starck <tuomas@meetin.gs>",
   "license": "BSD",
   "readmeFilename": "README.md",
   "bugs": {
-    "url": "https://github.com/meetings/restcapt/issues"
+    "url": "https://github.com/meetings/cuty-rpc/issues"
   }
 }

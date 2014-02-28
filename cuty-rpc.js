@@ -1,9 +1,9 @@
 #!/usr/bin/env nodejs
 
 /*\
- *  restcapt.js
+ *  cuty-rpc.js
  *  A web frontend to cutycapt
- *  2014-02-13 / Meetin.gs
+ *  2014-03-20 / Meetin.gs
 \*/
 
 var _    = require('underscore')
@@ -48,13 +48,13 @@ function toNaturalNumber(i, def) {
 function parseRequest(req) {
     var parsed = { fail: false }
 
-    parsed['url']    = req.param('url')
-    parsed['upload'] = req.param('upload')
-    parsed['auth']   = req.param('auth')
-    parsed['delay']  = req.param('delay')
-    parsed['width']  = req.param('width')
-    parsed['height'] = req.param('height')
-    parsed['js']     = req.param('javascript')
+    parsed.auth   = req.param('auth')
+    parsed.url    = req.param('url')
+    parsed.upload = req.param('upload')
+    parsed.delay  = req.param('delay')
+    parsed.width  = req.param('width')
+    parsed.height = req.param('height')
+    parsed.js     = req.param('javascript')
 
     if (_.isUndefined(parsed.auth)) {
         parsed.auth = 'fail'
@@ -67,11 +67,15 @@ function parseRequest(req) {
         return parsed
     }
 
-    if (_.isUndefined(parsed.url) || _.isUndefined(parsed.upload)) {
+    if (_.isUndefined(parsed.url)) {
         parsed.fail = true
         parsed.code = 400
         parsed.err = EMSG.arg
         return parsed
+    }
+
+    if (_.isUndefined(parsed.upload)) {
+        parsed.upload = false
     }
 
     parsed.delay  = toNaturalNumber(parsed.delay,  1000)
@@ -90,13 +94,11 @@ function parseRequest(req) {
 
 /* Receive client request and create a shell command.
  */
-function restcapt(req, result) {
+function cutyrpc(req, result) {
     var parsed = parseRequest(req)
 
-    // debug("REQ parametreja", parsed)
-
     if (parsed.fail) {
-        util.log('ERR  %s from client', parsed.code)
+        util.log(util.format('ERR  %s from client', parsed.code))
         result.status(parsed.code).send(parsed.err)
         return
     }
@@ -127,9 +129,7 @@ function restcapt(req, result) {
 
 /* Run cutycapt.
  */
-function capture(req, result, cmd, url, filename) {
-    // debug("capture() with CMD", cmd)
-
+function capture(req, result, cmd, up_url, filename) {
     var start = Date.now()
 
     var cuty = exec(cmd, function(err, stdout, stderr) {
@@ -142,13 +142,13 @@ function capture(req, result, cmd, url, filename) {
 
         var stop = Date.now()
 
-        upload(req, result, url, filename, (stop-start))
+        upload_or_reply(req, result, up_url, filename, (stop-start))
     })
 }
 
-/* Upload captured image data.
+/* Upload or reply with the captured image data.
  */
-function upload(req, result, url, filename, time) {
+function upload_or_reply(req, result, up_url, filename, time) {
     fs.stat(filename, function(err, stat) {
         if (err) {
             debug("ERR", err)
@@ -157,25 +157,37 @@ function upload(req, result, url, filename, time) {
             return
         }
 
-        rest.post(url, {
-            multipart: true,
-            data: {
-                file: rest.file(filename, null, stat.size, null, "image/png")
-            }
-        }).on('complete', function(data) {
-            fs.unlink(filename, function(err) {
-                if (err) util.log('ERR  unable to remove: ' + filename)
-            })
+        if (up_url === false) {
+            result.status(200).sendfile(filename, function(err) {
+                if (err) {
+                    util.log('ERR  sendfile failed for an unknown reason')
+                    return
+                }
 
-            util.log(util.format('DONE in %s', time))
-            result.status(200).send(data)
-        })
+                util.log(util.format('DONE replied  in %s', time))
+            })
+        }
+        else {
+            rest.post(up_url, {
+                multipart: true,
+                data: {
+                    file: rest.file(filename, null, stat.size, null, "image/png")
+                }
+            }).on('complete', function(data) {
+                fs.unlink(filename, function(err) {
+                    if (err) util.log('ERR  unable to remove: ' + filename)
+                })
+
+                util.log(util.format('DONE uploaded in %s', time))
+                result.status(200).send(data)
+            })
+        }
     })
 }
 
 var port = toNaturalNumber(process.env.PORT, 8000)
 
-app.get('/', restcapt)
+app.get('/', cutyrpc)
 
 app.listen(port)
 
