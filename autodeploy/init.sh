@@ -1,5 +1,7 @@
 #!/bin/sh
-# init.sh, 2014-02-12 / Meetin.gs
+# init.sh, 2014-03-30 / Meetin.gs
+
+set -u
 
 npm config set prefix $PREFIX --global
 npm install

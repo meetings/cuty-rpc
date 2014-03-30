@@ -32,8 +32,7 @@ git_upgrade() {
     #
     git checkout --force master
     git clean -d --force
-    git pull --all --recurse-submodules
-    git submodule update
+    git pull --all
     git remote prune origin
 
     # If there is no remote branch for this hosts

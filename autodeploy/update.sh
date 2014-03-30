@@ -1,7 +1,6 @@
 #!/bin/bash
 # update.sh, 2014-02-12 / Meetin.gs
 
-set -e
 set -u
 
 . $DEPLOYDIR/githupdate.sh
