@@ -4,6 +4,7 @@
   "description": "Web frontend to cutycapt",
   "dependencies": {
     "express": "~ 3.4",
+    "request": "~ 2.34",
     "restler": "~ 3.1",
     "tmp": "~ 0.0",
     "underscore": "~ 1.5"

@@ -3,23 +3,27 @@
 /*\
  *  cuty-rpc.js
  *  A remote access to cutycapt and libav.
- *  2014-04-24 / Meetin.gs
+ *  2014-04-26 / Meetin.gs
 \*/
 
-var app    = require('express')()
-var util   = require('util')
-var cuty   = require('./lib/cuty.js')
-var libav  = require('./lib/libav.js')
-var pkg    = require('./package.json')
+var app   = require('express')()
+var util  = require('util')
+var cuty  = require('./lib/cuty.js')
+var libav = require('./lib/libav.js')
+var pkg   = require('./package.json')
 
-var port = toNaturalNumber(process.env.PORT, 8000)
+var port = parseInt(process.env.PORT, 10)
 
 app.get('/',     cuty.cutycapt) /* This is legacy support */
 app.get('/capt', cuty.cutycapt)
 
-app.get('/av/length',  libav.length)
-app.get('/av/thumb',   libav.thumb)
-app.get('/av/convert', libav.convert)
+app.get('/libav/duration', libav.duration)
+app.get('/libav/thumb',    libav.thumb)
+app.get('/libav/convert',  libav.convert)
+
+app.get('/status', function(request, result) {
+    result.status(200).send("status: running")
+})
 
 app.listen(port)
 
