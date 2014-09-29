@@ -1,26 +1,24 @@
 {
-  "name": "cuty-rpc",
-  "version": "0.0.2",
-  "description": "Web frontend to cutycapt",
+  "name": "rpc-render",
+  "version": "0.1.0",
+  "description": "Media creation and conversion as a service",
   "dependencies": {
-    "express": "~ 3.4",
-    "request": "~ 2.34",
-    "restler": "~ 3.1",
-    "tmp": "~ 0.0",
-    "underscore": "~ 1.5"
+    "express": "^4.9.5",
+    "restler": "^3.2.2",
+    "tmp": "^0.0.24"
   },
-  "bin": "./cuty-rpc.js",
+  "bin": "./rpc-render.js",
   "scripts": {
     "test": "echo No tests specified"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/meetings/cuty-rpc.git"
+    "url": "git://github.com/meetings/rpc-render.git"
   },
   "author": "Tuomas Starck <tuomas@meetin.gs>",
   "license": "BSD",
   "readmeFilename": "README.md",
   "bugs": {
-    "url": "https://github.com/meetings/cuty-rpc/issues"
+    "url": "https://github.com/meetings/rpc-render/issues"
   }
 }
