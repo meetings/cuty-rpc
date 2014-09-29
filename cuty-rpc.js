@@ -3,7 +3,7 @@
 /*\
  *  cuty-rpc.js
  *  A remote access to cutycapt and libav.
- *  2014-04-26 / Meetin.gs
+ *  2014-04-28 / Meetin.gs
 \*/
 
 var app   = require('express')()
@@ -17,6 +17,7 @@ var port = parseInt(process.env.PORT, 10)
 app.get('/',     cuty.cutycapt) /* This is legacy support */
 app.get('/capt', cuty.cutycapt)
 
+app.get('/libav',          libav.all)
 app.get('/libav/duration', libav.duration)
 app.get('/libav/thumb',    libav.thumb)
 app.get('/libav/convert',  libav.convert)
