@@ -6,12 +6,15 @@
  *  2014-10-02 / Meetin.gs
 \*/
 
-var app  = require('express')()
-var util = require('util')
-var web  = require('./lib/web.js')
-var pkg  = require('./package.json')
+var express = require('express')
+var app     = express()
+var util    = require('util')
+var web     = require('./lib/web.js')
+var pkg     = require('./package.json')
 
-var port = parseInt(process.env.PORT, 10)
+var port = parseInt(process.env.PORT, 10) || 8000
+
+app.use(express.urlencoded())
 
 /* FIXME Legacy support */
 app.get('/', web.capture)
