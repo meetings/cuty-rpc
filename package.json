@@ -4,6 +4,7 @@
   "description": "Media creation and conversion as a service",
   "dependencies": {
     "express": "^4.9.5",
+    "node-phantom": "^0.2.5",
     "restler": "^3.2.2",
     "tmp": "^0.0.24"
   },
