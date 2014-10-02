@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Media creation and conversion as a service",
   "dependencies": {
+    "body-parser": "^1.9.0",
     "express": "^4.9.5",
     "restler": "^3.2.2",
     "tmp": "^0.0.24"
