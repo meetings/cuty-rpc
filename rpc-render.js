@@ -3,15 +3,14 @@
 /*\
  *  rpc-render.js
  *  Media creation and conversion as a service.
- *  2014-10-02 / Meetin.gs
+ *  2014-11-05 / Meetin.gs
 \*/
 
-var express = require('express')
-var app     = express()
-var parser  = require('body-parser')
-var util    = require('util')
-var web     = require('./lib/web.js')
-var pkg     = require('./package.json')
+var util   = require('util')
+var app    = require('express')()
+var parser = require('body-parser')
+var web    = require('./lib/webcap.js')
+var pkg    = require('./package.json')
 
 var port = parseInt(process.env.PORT, 10) || 8000
 
@@ -24,7 +23,7 @@ app.get('/webcap', web.capture)
 app.post('/webcap', web.capture)
 
 app.get('/status', function(request, result) {
-  result.status(200).send("status: running")
+  result.status(200).send(web.status())
 })
 
 app.listen(port)

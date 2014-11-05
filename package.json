@@ -1,11 +1,12 @@
 {
   "name": "rpc-render",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Media creation and conversion as a service",
   "dependencies": {
+    "async": "*",
     "body-parser": "^1.9.0",
     "express": "^4.9.5",
-    "restler": "^3.2.2",
+    "nightmare": "^1.6.0",
     "tmp": "^0.0.24"
   },
   "bin": "./rpc-render.js",
