@@ -1,5 +1,3 @@
+*.log
+*.swp
 node_modules
-\.sass\-cache
-temp
-meetings/events_dictionary.csv
-meetings/settings.js
